@@ -9,9 +9,7 @@ import javax.persistence.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-@NoArgsConstructor
-@Getter
-@Setter
+
 @Entity
 public class Game {
     @Id
@@ -19,11 +17,20 @@ public class Game {
     private Integer id;
 
     private String name;
-    @OneToMany
-    private List<Quiz> quizes;
     private Long timeStarted;
     private Long timeLockedDown;
     private Long timeEnded;
+    @OneToMany
+    private List<Quiz> quizes;
+
+
+    public void addQuiz(Quiz quiz) {
+        quizes.add(quiz);
+    }
+
+    public Game() {
+
+    }
 
     public Game(String name, List<Quiz> quizes, Long timeLockedDown) {
         this.name = name;
@@ -41,6 +48,7 @@ public class Game {
         this.timeStarted = LocalDateTime.now().toEpochSecond(Utilities.SERVER_OFFSET);
     }
 
+
     public Integer getId() {
         return id;
     }
@@ -55,14 +63,6 @@ public class Game {
 
     public void setName(String name) {
         this.name = name;
-    }
-
-    public List<Quiz> getQuizes() {
-        return quizes;
-    }
-
-    public void setQuizes(List<Quiz> quizes) {
-        this.quizes = quizes;
     }
 
     public Long getTimeStarted() {
@@ -87,5 +87,13 @@ public class Game {
 
     public void setTimeEnded(Long timeEnded) {
         this.timeEnded = timeEnded;
+    }
+
+    public List<Quiz> getQuizes() {
+        return quizes;
+    }
+
+    public void setQuizes(List<Quiz> quizes) {
+        this.quizes = quizes;
     }
 }

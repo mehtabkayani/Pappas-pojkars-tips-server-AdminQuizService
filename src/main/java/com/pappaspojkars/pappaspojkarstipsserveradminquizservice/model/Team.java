@@ -19,8 +19,7 @@ public class Team {
     private Integer id;
     private String name;
     private String flag;
-    @ManyToMany
-    private List<Match> match;
+
     public Team(String name, String flag) {
         this.name = name;
         this.flag = flag;

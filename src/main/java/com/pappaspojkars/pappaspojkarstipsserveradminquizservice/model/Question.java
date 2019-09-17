@@ -20,10 +20,8 @@ public class Question {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Integer id;
     private String slogan;
-    @Column
     @ElementCollection(targetClass=String.class)
     private List<String> alternatives;
-    @Column
     @ElementCollection(targetClass=String.class)
     private List<String> results;
     private String pointsCode;
@@ -36,12 +34,13 @@ public class Question {
         this.pointsCode = pointsCode;
         this.answerType = answerType;
     }
-    public Question(String slogan, List<String> alternatives,  String pointsCode, String answerType) {
+    public Question(String slogan, List<String> alternatives,  String pointsCode, String answerType, Quiz quiz) {
         this.slogan = slogan;
         this.alternatives = alternatives;
         this.pointsCode = pointsCode;
         this.answerType = answerType;
         this.results = new ArrayList<>();
+        quiz.addQuestion(this);
     }
 
     public Integer getId() {
