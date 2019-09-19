@@ -14,8 +14,10 @@ public class Quiz {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Integer id;
     private String name;
+
     @OneToMany
     private List<Question> questions;
+
     @ManyToOne
     private Game game;
 
@@ -42,6 +44,7 @@ public class Quiz {
         this.name = name;
         this.questions = new ArrayList<>();
         this.game = game;
+        game.addQuiz(this);
     }
 
     public Integer getId() {

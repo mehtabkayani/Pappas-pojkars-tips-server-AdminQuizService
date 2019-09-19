@@ -20,6 +20,7 @@ public class Game {
     private Long timeStarted;
     private Long timeLockedDown;
     private Long timeEnded;
+
     @OneToMany
     private List<Quiz> quizes;
 

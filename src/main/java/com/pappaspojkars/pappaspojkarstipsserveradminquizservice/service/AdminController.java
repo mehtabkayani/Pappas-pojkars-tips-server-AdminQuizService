@@ -31,17 +31,16 @@ public class AdminController {
     }
 
     @PostMapping("/createQuiz")
-    public Quiz createQuiz(@RequestBody Quiz quiz){
+    public Quiz createQuiz(@RequestBody Quiz quiz, Integer gameId){
         String name = quiz.getName();
-        Game game = repo.game().findById(quiz.getGame().getId()).get();
+        Game game = repo.game().findById(gameId).get();
 
         Quiz newQuiz = repo.quiz().save(new Quiz(name, game));
-        game.addQuiz(newQuiz);
         repo.game().save(game);
 
         // make viewable
         newQuiz.getGame().setQuizes(newQuiz.getGame().getQuizes().stream()
-                .filter(q -> !q.getId().equals(newQuiz.getId()))
+//                .filter(q -> !q.getId().equals(newQuiz.getId()))
             .map(q -> {
                 q = new Quiz(q);
                 q.setGame(null);
@@ -100,6 +99,7 @@ public class AdminController {
     public Team createTeam(@RequestBody Team team){
         String name = team.getName();
         String flag = team.getFlag();
+
 
         Team newTeam = new Team(name, flag);
         return repo.team().save(newTeam);

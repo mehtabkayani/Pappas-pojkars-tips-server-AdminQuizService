@@ -1,17 +1,8 @@
 package com.pappaspojkars.pappaspojkarstipsserveradminquizservice.model;
-
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-
 import javax.persistence.*;
 import java.util.List;
 
-@AllArgsConstructor
-@NoArgsConstructor
-@Getter
-@Setter
+
 @Entity
 public class Team {
     @Id
@@ -19,10 +10,16 @@ public class Team {
     private Integer id;
     private String name;
     private String flag;
+    private Integer refTeam;
+
 
     public Team(String name, String flag) {
         this.name = name;
         this.flag = flag;
+        this.refTeam = null;
+    }
+
+    public Team() {
     }
 
     public Integer getId() {
@@ -47,5 +44,13 @@ public class Team {
 
     public void setFlag(String flag) {
         this.flag = flag;
+    }
+
+    public Integer getRefTeam() {
+        return refTeam;
+    }
+
+    public void setRefTeam(Integer refTeam) {
+        this.refTeam = refTeam;
     }
 }
