@@ -3,10 +3,7 @@ package com.pappaspojkars.pappaspojkarstipsserveradminquizservice.service;
 import com.pappaspojkars.pappaspojkarstipsserveradminquizservice.model.*;
 import com.pappaspojkars.pappaspojkarstipsserveradminquizservice.repositories.AdminRepo;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,7 +37,7 @@ public class AdminController {
 
         // make viewable
         newQuiz.getGame().setQuizes(newQuiz.getGame().getQuizes().stream()
-//                .filter(q -> !q.getId().equals(newQuiz.getId()))
+               // .filter(q -> !q.getId().equals(newQuiz.getId()))
             .map(q -> {
                 q = new Quiz(q);
                 q.setGame(null);
@@ -104,6 +101,19 @@ public class AdminController {
         Team newTeam = new Team(name, flag);
         return repo.team().save(newTeam);
     }
+
+    @PutMapping("/team/{id}/ref")
+    public Team addRefTeam(@PathVariable Integer id, @RequestBody Integer refId){
+        Optional<Team> team  = repo.team().findById(id);
+        Optional<Team> teamRef = repo.team().findById(refId);
+
+        team.get().setRefTeam(teamRef.get());
+
+        return repo.team().save(team.get());
+
+    }
+
+
 
     //endregion
 

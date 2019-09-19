@@ -10,7 +10,8 @@ public class Team {
     private Integer id;
     private String name;
     private String flag;
-    private Integer refTeam;
+    @OneToOne
+    private Team refTeam;
 
 
     public Team(String name, String flag) {
@@ -46,11 +47,11 @@ public class Team {
         this.flag = flag;
     }
 
-    public Integer getRefTeam() {
+    public Team getRefTeam() {
         return refTeam;
     }
 
-    public void setRefTeam(Integer refTeam) {
+    public void setRefTeam(Team refTeam) {
         this.refTeam = refTeam;
     }
 }
