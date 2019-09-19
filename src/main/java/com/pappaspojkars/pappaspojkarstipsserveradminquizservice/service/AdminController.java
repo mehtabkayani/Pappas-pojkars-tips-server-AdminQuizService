@@ -102,19 +102,6 @@ public class AdminController {
         return repo.team().save(newTeam);
     }
 
-    @PutMapping("/team/{id}/ref")
-    public Team addRefTeam(@PathVariable Integer id, @RequestBody Integer refId){
-        Optional<Team> team  = repo.team().findById(id);
-        Optional<Team> teamRef = repo.team().findById(refId);
-
-        team.get().setRefTeam(teamRef.get());
-
-        return repo.team().save(team.get());
-
-    }
-
-
-
     //endregion
 
     //region Get by ID
@@ -220,5 +207,20 @@ public class AdminController {
         return repo.team().findAll();
     }
 
+    //endregion
+    
+    //region UPDATE
+    
+    @PutMapping("/team/{id}/ref")
+    public Team addRefTeam(@PathVariable Integer id, @RequestBody Integer refId){
+        Optional<Team> team  = repo.team().findById(id);
+        Optional<Team> teamRef = repo.team().findById(refId);
+
+        team.get().setRefTeam(teamRef.get());
+
+        return repo.team().save(team.get());
+
+    }
+    
     //endregion
 }
