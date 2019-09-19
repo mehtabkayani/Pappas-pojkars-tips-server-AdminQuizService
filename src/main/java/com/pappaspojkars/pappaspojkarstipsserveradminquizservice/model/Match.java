@@ -13,18 +13,29 @@ import java.util.List;
 @Getter @Setter
 
 @Entity
+@Table(name = "duel")
 public class Match {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Integer id;
-    @ManyToMany
-    private List<Team> teams;
     private String channel;
     private Long date_time;
+    @ManyToMany
+    private List<Team> teams;
     @OneToOne
     private Question question;
 
-    public Match(Team team1, Team team2, boolean isTieable, Long date_time, String channel, String pointsCode) {
+    public Match(Team team1, Team team2, String channel, Long date_time, Question question) {
+        teams = new ArrayList<>();
+        teams.add(team1);
+        teams.add(team2);
+
+        this.channel = channel;
+        this.date_time = date_time;
+        this.question = question;
+    }
+
+    public Match(Team team1, Team team2, boolean isTieable, Long date_time, String channel, String pointsCode, Quiz quiz) {
         String slogan =team1.getName() + " vs " + team2.getName();
         List<String> alternatives = new ArrayList<>();
         alternatives.add("1");
@@ -36,7 +47,7 @@ public class Match {
         teams.add(team1);
         teams.add(team2);
 
-        this.question = new Question(slogan,alternatives,pointsCode,"1");
+        this.question = new Question(slogan,alternatives,pointsCode,"1", quiz);
         this.date_time = date_time;
         this.channel = channel;
     }

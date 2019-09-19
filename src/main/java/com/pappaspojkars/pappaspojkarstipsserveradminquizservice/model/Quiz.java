@@ -7,19 +7,32 @@ import lombok.Setter;
 import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
-@Getter @Setter
-@NoArgsConstructor
+
 @Entity
 public class Quiz {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Integer id;
+    private String name;
+
     @OneToMany
     private List<Question> questions;
-    private String name;
 
     @ManyToOne
     private Game game;
+
+    public void addQuestion(Question question) {
+        questions.add(question);
+    }
+
+    public Quiz(){}
+
+    public Quiz(Quiz quiz) {
+        id = quiz.id;
+        name = quiz.getName();
+        questions = quiz.getQuestions();
+        game = quiz.getGame();
+    }
 
     public Quiz(List<Question> questions, String name, Game game) {
         this.name = name;
@@ -31,6 +44,7 @@ public class Quiz {
         this.name = name;
         this.questions = new ArrayList<>();
         this.game = game;
+        game.addQuiz(this);
     }
 
     public Integer getId() {
@@ -41,20 +55,20 @@ public class Quiz {
         this.id = id;
     }
 
-    public List<Question> getQuestions() {
-        return questions;
-    }
-
-    public void setQuestions(List<Question> questions) {
-        this.questions = questions;
-    }
-
     public String getName() {
         return name;
     }
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public List<Question> getQuestions() {
+        return questions;
+    }
+
+    public void setQuestions(List<Question> questions) {
+        this.questions = questions;
     }
 
     public Game getGame() {
