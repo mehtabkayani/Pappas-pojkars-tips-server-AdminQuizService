@@ -5,6 +5,7 @@ import com.pappaspojkars.pappaspojkarstipsserveradminquizservice.repositories.Ad
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -21,7 +22,7 @@ public class AdminController {
     @PostMapping("/createGame")
     public Game createGame(@RequestBody Game game){
         String name = game.getName();
-        long timeLockedDown = game.getTimeLockedDown();
+        LocalDateTime timeLockedDown = game.getTimeLockedDown();
 
         Game newGame = new Game(name, timeLockedDown);
         return repo.game().save(newGame);
@@ -53,10 +54,11 @@ public class AdminController {
 
         String slogan = question.getSlogan();
         List<String> alternatives = question.getAlternatives();
+        List<String> results = question.getResults();
         String pointsCode = question.getPointsCode();
         String answerType = question.getAnswerType();
 
-        Question newQuestion = new Question(slogan, alternatives, pointsCode, answerType, quiz);
+        Question newQuestion = new Question(slogan, alternatives, results, pointsCode, answerType, quiz);
         newQuestion = repo.question().save(newQuestion);
 
         repo.quiz().save(quiz);
@@ -69,8 +71,7 @@ public class AdminController {
         Team firstTeam = repo.team().findById(team1).get();
         Team secondTeam = repo.team().findById(team2).get();
         String channel = match.getChannel();
-        Long date_time = match.getDate_time();
-
+        LocalDateTime date_time = match.getDate_time();
 
         String slogan = firstTeam.getName() + " vs " + secondTeam.getName();
         List<String> alternatives = new ArrayList<>();
@@ -223,4 +224,9 @@ public class AdminController {
     }
     
     //endregion
+
+    @GetMapping("/test")
+    public LocalDateTime test() {
+        return LocalDateTime.now();
+    }
 }

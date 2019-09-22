@@ -27,12 +27,13 @@ public class Question {
     private String pointsCode;
     private String answerType;
 
-    public Question(String slogan, List<String> alternatives, List<String> results, String pointsCode, String answerType) {
+    public Question(String slogan, List<String> alternatives, List<String> results, String pointsCode, String answerType, Quiz quiz) {
         this.slogan = slogan;
         this.alternatives = alternatives;
         this.results = results;
         this.pointsCode = pointsCode;
         this.answerType = answerType;
+        quiz.addQuestion(this);
     }
     public Question(String slogan, List<String> alternatives,  String pointsCode, String answerType, Quiz quiz) {
         this.slogan = slogan;

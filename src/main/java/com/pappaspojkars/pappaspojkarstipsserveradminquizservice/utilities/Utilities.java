@@ -1,4 +1,4 @@
-package com.pappaspojkars.pappaspojkarstipsserveradminquizservice;
+package com.pappaspojkars.pappaspojkarstipsserveradminquizservice.utilities;
 
 import java.time.ZoneOffset;
 

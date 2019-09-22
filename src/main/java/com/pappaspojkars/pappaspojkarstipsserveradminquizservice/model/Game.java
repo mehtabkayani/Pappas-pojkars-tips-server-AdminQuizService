@@ -1,9 +1,6 @@
 package com.pappaspojkars.pappaspojkarstipsserveradminquizservice.model;
 
-import com.pappaspojkars.pappaspojkarstipsserveradminquizservice.Utilities;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import com.pappaspojkars.pappaspojkarstipsserveradminquizservice.utilities.LocalDateTimeAttributeConverter;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
@@ -17,9 +14,12 @@ public class Game {
     private Integer id;
 
     private String name;
-    private Long timeStarted;
-    private Long timeLockedDown;
-    private Long timeEnded;
+    @Convert(converter = LocalDateTimeAttributeConverter.class)
+    private LocalDateTime timeStarted;
+    @Convert(converter = LocalDateTimeAttributeConverter.class)
+    private LocalDateTime timeLockedDown;
+    @Convert(converter = LocalDateTimeAttributeConverter.class)
+    private LocalDateTime timeEnded;
 
     @OneToMany
     private List<Quiz> quizes;
@@ -33,20 +33,20 @@ public class Game {
 
     }
 
-    public Game(String name, List<Quiz> quizes, Long timeLockedDown) {
+    public Game(String name, List<Quiz> quizes, LocalDateTime timeLockedDown) {
         this.name = name;
         this.quizes = quizes;
         this.timeLockedDown = timeLockedDown;
 
-        this.timeStarted = LocalDateTime.now().toEpochSecond(Utilities.SERVER_OFFSET);
+        this.timeStarted = LocalDateTime.now();
     }
 
-    public Game(String name, Long timeLockedDown) {
+    public Game(String name, LocalDateTime timeLockedDown) {
         this.name = name;
         this.quizes = new ArrayList<>();
         this.timeLockedDown = timeLockedDown;
 
-        this.timeStarted = LocalDateTime.now().toEpochSecond(Utilities.SERVER_OFFSET);
+        this.timeStarted = LocalDateTime.now();
     }
 
 
@@ -66,27 +66,27 @@ public class Game {
         this.name = name;
     }
 
-    public Long getTimeStarted() {
+    public LocalDateTime getTimeStarted() {
         return timeStarted;
     }
 
-    public void setTimeStarted(Long timeStarted) {
+    public void setTimeStarted(LocalDateTime timeStarted) {
         this.timeStarted = timeStarted;
     }
 
-    public Long getTimeLockedDown() {
+    public LocalDateTime getTimeLockedDown() {
         return timeLockedDown;
     }
 
-    public void setTimeLockedDown(Long timeLockedDown) {
+    public void setTimeLockedDown(LocalDateTime timeLockedDown) {
         this.timeLockedDown = timeLockedDown;
     }
 
-    public Long getTimeEnded() {
+    public LocalDateTime getTimeEnded() {
         return timeEnded;
     }
 
-    public void setTimeEnded(Long timeEnded) {
+    public void setTimeEnded(LocalDateTime timeEnded) {
         this.timeEnded = timeEnded;
     }
 
