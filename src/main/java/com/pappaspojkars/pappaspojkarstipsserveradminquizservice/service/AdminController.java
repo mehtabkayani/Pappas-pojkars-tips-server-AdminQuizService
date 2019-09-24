@@ -14,6 +14,8 @@ import java.util.stream.StreamSupport;
 @RestController
 public class AdminController {
 
+    // region Validation
+
     private String validate(String string, String defaultString) {
         return string == null || string.trim().isEmpty() ? defaultString : string;
     }
@@ -56,6 +58,8 @@ public class AdminController {
     private LocalDateTime validate(LocalDateTime time, LocalDateTime defaultTime) {
         return (time == null) ? defaultTime : time;
     }
+
+    // endregion
 
     @Autowired
    private AdminRepo repo;
@@ -280,16 +284,18 @@ public class AdminController {
 
         String          name = validate(match.getName(), oldMatch.getName());
         String          channel = validate(match.getChannel(), oldMatch.getChannel());
-        LocalDateTime   date_time = match.getDate_time();
+        LocalDateTime   date_time = validate(match.getDate_time(), oldMatch.getDate_time());
         Team            team1 = validate(match.gatherTeam1(), oldTeam1);
         Team            team2 = validate(match.gatherTeam2(), oldTeam2);
 
-        date_time = date_time == null ? oldMatch.getDate_time() : date_time;
-
+        if(team1.equals(team2)) {
+            team1 = oldTeam1;
+            team2 = oldTeam2;
+        }
 
         if( !team1.equals(oldTeam1) || !team2.equals(oldTeam2) ) {
             Question question = oldMatch.getQuestion();
-            question.setSlogan(team1.getName() + " vs " + team2.getName());
+            question.setSlogan(Match.generateSlogan(oldMatch.getTeams()));
             repo.question().save(question);
         }
 
