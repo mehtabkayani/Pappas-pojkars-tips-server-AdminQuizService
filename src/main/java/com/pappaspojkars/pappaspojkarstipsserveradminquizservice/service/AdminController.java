@@ -6,8 +6,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -26,7 +24,7 @@ public class AdminController {
         if(!oGame.isPresent())
             return defaultGame;
         game = oGame.get();
-        if(game.getTimeEnded().isBefore(LocalDateTime.now()))
+        if(game.getTimeEnded() != null && game.getTimeEnded().isBefore(LocalDateTime.now()))
             return defaultGame;
 
         return game;
@@ -41,11 +39,13 @@ public class AdminController {
 
         return team;
     }
-    private Quiz validate(int quizId, Quiz defaultQuiz) {
+    private Quiz validate(Integer quizId, Quiz defaultQuiz) {
+        if(quizId == null)
+            return defaultQuiz;
         Optional<Quiz> oQuiz = repo.quiz().findById(quizId);
         return oQuiz.orElse(defaultQuiz);
     }
-    private List<String> validate(List<String> list, List<String> defaultList) {
+    private <T> List<T> validate(List<T> list, List<T> defaultList) {
         if(list == null)
             return defaultList;
         if(list.isEmpty())
@@ -53,49 +53,52 @@ public class AdminController {
 
         return list;
     }
+    private LocalDateTime validate(LocalDateTime time, LocalDateTime defaultTime) {
+        return (time == null) ? defaultTime : time;
+    }
 
     @Autowired
    private AdminRepo repo;
 
     //region Create
+
     @PostMapping("/createGame")
     public Game createGame(@RequestBody Game game){
-        String name = game.getName();
-        LocalDateTime timeLockedDown = game.getTimeLockedDown();
+        String          name = validate(game.getName(), null);
+        LocalDateTime   timeLockedDown = game.getTimeLockedDown();
+
+        if(name == null) throw new RuntimeException("Name is required");
 
         Game newGame = new Game(name, timeLockedDown);
         return repo.game().save(newGame);
     }
 
     @PostMapping("/createQuiz")
-    public Quiz createQuiz(@RequestBody Quiz quiz, Integer gameId){
-        String name = quiz.getName();
-        Game game = repo.game().findById(gameId).get();
+    public Quiz createQuiz(@RequestBody Quiz quiz){
+        String      name = validate(quiz.getName(), null);
+        Game        game = validate(quiz.getGame(), null);
+
+        if(name == null) throw new RuntimeException("Name is required");
+        if(game == null) throw new RuntimeException("Game is required");
 
         Quiz newQuiz = repo.quiz().save(new Quiz(name, game));
         repo.game().save(game);
 
-        // make viewable
-        newQuiz.getGame().setQuizes(newQuiz.getGame().getQuizes().stream()
-               // .filter(q -> !q.getId().equals(newQuiz.getId()))
-            .map(q -> {
-                q = new Quiz(q);
-                q.setGame(null);
-                return q;
-                    }
-            ).collect(Collectors.toList()));
-        return newQuiz;
+        return newQuiz.makeViewable();
     }
 
     @PostMapping("/createQuestion")
     public Question createQuestion(@RequestBody Question question, int quizId){
-        Quiz quiz = repo.quiz().findById(quizId).get();
+        String          slogan = validate(question.getSlogan(), null);
+        List<String>    alternatives = question.getAlternatives();
+        List<String>    results = question.getResults();
+        String          pointsCode = validate(question.getPointsCode(), "");
+        String          answerType = validate(question.getAnswerType(), "1");
 
-        String slogan = question.getSlogan();
-        List<String> alternatives = question.getAlternatives();
-        List<String> results = question.getResults();
-        String pointsCode = question.getPointsCode();
-        String answerType = question.getAnswerType();
+        Optional<Quiz> oQuiz = repo.quiz().findById(quizId);
+        if(!oQuiz.isPresent())
+            throw new RuntimeException("Valid quizId is required");
+        Quiz quiz = oQuiz.get();
 
         Question newQuestion = new Question(slogan, alternatives, results, pointsCode, answerType, quiz);
         newQuestion = repo.question().save(newQuestion);
@@ -106,38 +109,37 @@ public class AdminController {
     }
 
     @PostMapping("/createMatch")
-    public Match createMatch(@RequestBody Match match, int team1, int team2, boolean isTieable, String pointsCode, int quizId){
-        String name = match.getName();
-        Team firstTeam = repo.team().findById(team1).get();
-        Team secondTeam = repo.team().findById(team2).get();
-        String channel = match.getChannel();
-        LocalDateTime date_time = match.getDate_time();
+    public Match createMatch(@RequestBody Match match, boolean isTieable, String pointsCode, int quizId){
+        String          name = validate(match.getName(), null);
+        String          channel = validate(match.getChannel(), "");
+        LocalDateTime   date_time = validate(match.getDate_time(), null);
+        List<Team>      teams = validate(match.getTeams(), null);
 
-        String slogan = firstTeam.getName() + " vs " + secondTeam.getName();
-        List<String> alternatives = new ArrayList<>();
-        alternatives.add("1");
-        if(isTieable) {
-            alternatives.add("X");
-        }
-        alternatives.add("2");
-        String code = pointsCode;
-        Quiz quiz = repo.quiz().findById(quizId).get();
+        Team firstTeam = validate(teams.get(0), null);
+        Team secondTeam = validate(teams.get(1), null);
 
-        Question question = new Question(slogan,alternatives,code,"1", quiz);
+        String code = validate(pointsCode, "");
+        boolean couldTie = isTieable;
+        Optional<Quiz> oQuiz = repo.quiz().findById(quizId);
 
-        question = repo.question().save(question);
+        if(name == null) throw new RuntimeException("Name is required");
+        if(firstTeam == null || secondTeam == null) throw new RuntimeException("Two teams are required");
+        if(!oQuiz.isPresent()) throw new RuntimeException("Valid quizId is required");
+        Quiz quiz = oQuiz.get();
+
+        Match newMatch = new Match(name, firstTeam, secondTeam, couldTie, date_time, channel, code, quiz);
+
+        repo.question().save(newMatch.getQuestion());
         repo.quiz().save(quiz);
-
-        Match newMatch = new Match(name, firstTeam, secondTeam, channel, date_time, question);
-
         return repo.match().save(newMatch);
     }
 
     @PostMapping("/createTeam")
     public Team createTeam(@RequestBody Team team){
-        String name = team.getName();
-        String flag = team.getFlag();
+        String name = validate(team.getName(), null);
+        String flag = validate(team.getFlag(), "");
 
+        if(name == null) throw new RuntimeException("Name is required");
 
         Team newTeam = new Team(name, flag);
         return repo.team().save(newTeam);
@@ -150,32 +152,13 @@ public class AdminController {
     @GetMapping("/getGame")
     public Optional<Game> getGame(@RequestBody int id) {
         Optional<Game> game = repo.game().findById(id);
-        if(game.isPresent()) {
-            game.get().setQuizes(game.get().getQuizes().stream()
-                .map(q -> {
-                    q.setGame(null);
-                    return q;
-                })
-                .collect(Collectors.toList()));
-        }
-        return game;
+        return game.map(Game::makeViewable);
     }
 
     @GetMapping("/getQuiz")
     public Optional<Quiz> getQuiz(@RequestBody int id) {
         Optional<Quiz> quiz = repo.quiz().findById(id);
-        if(quiz.isPresent()) {
-            quiz.get().getGame().setQuizes(
-                    quiz.get().getGame().getQuizes().stream()
-                        .filter(q -> !q.getId().equals(id))
-                        .map(q -> {
-                            q.setGame(null);
-                            return q;
-                        })
-                        .collect(Collectors.toList())
-            );
-        }
-        return quiz;
+        return quiz.map(Quiz::makeViewable);
     }
 
     @GetMapping("/getQuestion")
@@ -202,34 +185,15 @@ public class AdminController {
 
     @GetMapping("/getGames")
     public List<Game> getGames() {
-        return StreamSupport.stream(repo.game().findAll().spliterator(), true)
-                .map(g -> {
-                    g.setQuizes(g.getQuizes().stream()
-                            .map(q -> {
-                                q.setGame(null);
-                                return q;
-                            })
-                            .collect(Collectors.toList()));
-                    return g;
-                })
+        return StreamSupport.stream(repo.game().findAll().spliterator(), false)
+                .map(Game::makeViewable)
                 .collect(Collectors.toList());
     }
 
     @GetMapping("/getQuizes")
     public List<Quiz> getQuizes() {
-        return StreamSupport.stream(repo.quiz().findAll().spliterator(), true)
-                .map(q -> {
-                    q.getGame().setQuizes(
-                            q.getGame().getQuizes().stream()
-                            .filter(q1 -> !q1.getId().equals(q.getId()))
-                            .map(q1 -> {
-                                q1.setGame(null);
-                                return q1;
-                            })
-                            .collect(Collectors.toList())
-                    );
-                    return q;
-                })
+        return StreamSupport.stream(repo.quiz().findAll().spliterator(), false)
+                .map(Quiz::makeViewable)
                 .collect(Collectors.toList());
     }
 
@@ -250,7 +214,7 @@ public class AdminController {
 
     //endregion
     
-    //region UPDATE
+    //region Update
 
     @PutMapping("/updateGame")
     public Game updateGame(@RequestBody Game game) {
@@ -260,13 +224,12 @@ public class AdminController {
         Game oldGame = oGame.get();
 
 
-        String name = validate(game.getName(), oldGame.getName());
+        String          name = validate(game.getName(), oldGame.getName());
+        LocalDateTime   timeLockedDown = game.getTimeLockedDown();
+        LocalDateTime   timeEnded = game.getTimeEnded();
 
-        LocalDateTime timeLockedDown = game.getTimeLockedDown();
-        timeLockedDown = timeLockedDown == null || timeLockedDown.isBefore(game.getTimeStarted()) ? oldGame.getTimeLockedDown() : timeLockedDown;
-
-        LocalDateTime timeEnded = game.getTimeEnded();
-        timeEnded = timeEnded == null || timeEnded.isBefore(game.getTimeStarted()) ? oldGame.getTimeEnded() : timeEnded;
+        timeLockedDown = timeLockedDown == null || timeLockedDown.isBefore(oldGame.getTimeStarted()) ? oldGame.getTimeLockedDown() : timeLockedDown;
+        timeEnded = timeEnded == null || timeEnded.isBefore(oldGame.getTimeStarted()) ? oldGame.getTimeEnded() : timeEnded;
 
         oldGame.setName(name);
         oldGame.setTimeLockedDown(timeLockedDown);
@@ -284,11 +247,11 @@ public class AdminController {
         if(!oQuiz.isPresent())
             throw new RuntimeException("No Such Quiz");
         Quiz oldQuiz = oQuiz.get();
-
-        String name = validate(quiz.getName(), oldQuiz.getName());
-
         Game oldGame = oldQuiz.getGame();
-        Game game = validate(quiz.getGame(), oldGame);
+
+        String      name = validate(quiz.getName(), oldQuiz.getName());
+        Game        game = validate(quiz.getGame(), oldGame);
+
         if(!game.getId().equals(oldGame.getId())) {
             oldGame.removeQuiz(quiz);
             game.addQuiz(quiz);
@@ -311,21 +274,20 @@ public class AdminController {
         if(!oMatch.isPresent())
             throw new RuntimeException("No Such Match");
         Match oldMatch = oMatch.get();
+        // I don't know why... but they need to be switched...
+        Team oldTeam2 = oldMatch.gatherTeam1();
+        Team oldTeam1 = oldMatch.gatherTeam2();
 
-        Team oldTeam1 = oldMatch.getTeams().get(0);
-        Team oldTeam2 = oldMatch.getTeams().get(1);
-
-        String name = validate(match.getName(), oldMatch.getName());
-        String channel = validate(match.getChannel(), oldMatch.getName());
-        LocalDateTime date_time = match.getDate_time();
-        List<Team> teams = match.getTeams();
+        String          name = validate(match.getName(), oldMatch.getName());
+        String          channel = validate(match.getChannel(), oldMatch.getChannel());
+        LocalDateTime   date_time = match.getDate_time();
+        Team            team1 = validate(match.gatherTeam1(), oldTeam1);
+        Team            team2 = validate(match.gatherTeam2(), oldTeam2);
 
         date_time = date_time == null ? oldMatch.getDate_time() : date_time;
-        Team team1 = validate(teams.get(0), oldTeam1);
-        Team team2 = validate(teams.get(1), oldTeam2);
 
 
-        if( team1.getId().equals(oldTeam1.getId()) || !team2.getId().equals(oldTeam2.getId()) ) {
+        if( !team1.equals(oldTeam1) || !team2.equals(oldTeam2) ) {
             Question question = oldMatch.getQuestion();
             question.setSlogan(team1.getName() + " vs " + team2.getName());
             repo.question().save(question);
@@ -334,7 +296,8 @@ public class AdminController {
         oldMatch.setName(name);
         oldMatch.setChannel(channel);
         oldMatch.setDate_time(date_time);
-        oldMatch.setTeams(Arrays.asList(team1, team2));
+        oldMatch.setTeam1(team1);
+        oldMatch.setTeam2(team2);
 
         match = repo.match().save(oldMatch);
 
@@ -344,19 +307,19 @@ public class AdminController {
 
 
     @PutMapping("/updateQuestion")
-    public Question updateQuestion(@RequestBody Question question, int quizId) {
+    public Question updateQuestion(@RequestBody Question question, Integer quizId) {
         Optional<Question> oQuestion = repo.question().findById(question.getId());
         if(!oQuestion.isPresent())
             throw new RuntimeException("No Such Question");
         Question oldQuestion = oQuestion.get();
         Quiz oldQuiz = repo.quiz().findByQuestionsContains(oldQuestion);
 
-        String slogan = validate(question.getSlogan(), oldQuestion.getSlogan());
-        String answerType = validate(question.getAnswerType(), oldQuestion.getAnswerType());
-        String pointsCode = validate(question.getPointsCode(), oldQuestion.getPointsCode());
-        List<String> alternatives = validate(question.getAlternatives(), oldQuestion.getAlternatives());
-        List<String> results = validate(question.getResults(), oldQuestion.getResults());
-        Quiz quiz = validate(quizId, oldQuiz);
+        String          slogan = validate(question.getSlogan(), oldQuestion.getSlogan());
+        String          answerType = validate(question.getAnswerType(), oldQuestion.getAnswerType());
+        String          pointsCode = validate(question.getPointsCode(), oldQuestion.getPointsCode());
+        List<String>    alternatives = validate(question.getAlternatives(), oldQuestion.getAlternatives());
+        List<String>    results = validate(question.getResults(), oldQuestion.getResults());
+        Quiz            quiz = validate(quizId, oldQuiz);
 
         if(!quiz.getId().equals(oldQuiz.getId())) {
             oldQuiz.removeQuestion(question);
@@ -384,28 +347,25 @@ public class AdminController {
             throw new RuntimeException("No Such Team");
         Team oldTeam = oTeam.get();
 
-        String name = validate(team.getName(), oldTeam.getName());
-        String flag = validate(team.getFlag(), oldTeam.getFlag());
-        Team refTeam = team.getRefTeam();
+        String      name = validate(team.getName(), oldTeam.getName());
+        String      flag = validate(team.getFlag(), oldTeam.getFlag());
+        Team        refTeam = validate(team.getRefTeam(), null);
 
+        boolean nameHasChanged = false;
         if(!name.equals(oldTeam.getName())) {
-            repo.match().getMatchesByTeamsContains(oldTeam)
-                    .forEach(m -> {
-                        Question q = m.getQuestion();
-                        List<Team> teams = m.getTeams();
-                        int teamIndex = teams.indexOf(oldTeam);
-
-                        String team1name = teamIndex == 0 ? name : teams.get(0).getName();
-                        String team2name = teamIndex == 1 ? name : teams.get(1).getName();
-
-                        q.setSlogan(team1name + " vs " + team2name);
-                        repo.question().save(q);
-                    });
+            nameHasChanged = true;
         }
 
         oldTeam.setName(name);
         oldTeam.setFlag(flag);
         oldTeam.setRefTeam(refTeam);
+
+        if(nameHasChanged)
+            repo.match().getMatchesByTeamsContains(oldTeam).forEach(m -> {
+                Question q = m.getQuestion();
+                q.setSlogan(Match.generateSlogan(m.getTeams()));
+                repo.question().save(q);
+            });
 
         team = repo.team().save(oldTeam);
 
@@ -414,8 +374,4 @@ public class AdminController {
     
     //endregion
 
-    @GetMapping("/test")
-    public LocalDateTime test() {
-        return LocalDateTime.now();
-    }
 }

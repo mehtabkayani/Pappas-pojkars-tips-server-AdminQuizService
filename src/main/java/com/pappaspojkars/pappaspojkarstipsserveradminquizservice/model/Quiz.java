@@ -1,18 +1,17 @@
 package com.pappaspojkars.pappaspojkarstipsserveradminquizservice.model;
 
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+
 
 import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Entity
 public class Quiz {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
     private String name;
 
@@ -30,12 +29,13 @@ public class Quiz {
     }
     public Quiz makeViewable() {
         game.setQuizes(game.getQuizes().stream()
-                .filter(q -> !q.getId().equals(id))
-                .map(q -> {
-                    q.setGame(null);
-                    return q;
-                })
-                .collect(Collectors.toList()));
+            // .filter(q -> !q.getId().equals(newQuiz.getId()))
+            .map(q -> {
+                        q = new Quiz(q);
+                        q.setGame(null);
+                        return q;
+                    }
+            ).collect(Collectors.toList()));
         return this;
     }
 
@@ -59,6 +59,29 @@ public class Quiz {
         this.questions = new ArrayList<>();
         this.game = game;
         game.addQuiz(this);
+    }
+
+    @Override
+    public String toString() {
+        return "Quiz{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", questions=" + questions +
+                ", game=" + game +
+                '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Quiz quiz = (Quiz) o;
+        return Objects.equals(id, quiz.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
     }
 
     public Integer getId() {
