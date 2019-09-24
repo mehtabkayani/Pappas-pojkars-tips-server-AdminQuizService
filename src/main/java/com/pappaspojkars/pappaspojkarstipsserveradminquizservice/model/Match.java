@@ -21,6 +21,7 @@ public class Match {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Integer id;
     private String channel;
+    private String name;
     @Convert(converter = LocalDateTimeAttributeConverter.class)
     private LocalDateTime date_time;
     @ManyToMany
@@ -28,17 +29,18 @@ public class Match {
     @OneToOne
     private Question question;
 
-    public Match(Team team1, Team team2, String channel, LocalDateTime date_time, Question question) {
+    public Match(String name, Team team1, Team team2, String channel, LocalDateTime date_time, Question question) {
         teams = new ArrayList<>();
         teams.add(team1);
         teams.add(team2);
 
+        this.name = name;
         this.channel = channel;
         this.date_time = date_time;
         this.question = question;
     }
 
-    public Match(Team team1, Team team2, boolean isTieable, LocalDateTime date_time, String channel, String pointsCode, Quiz quiz) {
+    public Match(String name, Team team1, Team team2, boolean isTieable, LocalDateTime date_time, String channel, String pointsCode, Quiz quiz) {
         String slogan =team1.getName() + " vs " + team2.getName();
         List<String> alternatives = new ArrayList<>();
         alternatives.add("1");
@@ -50,9 +52,26 @@ public class Match {
         teams.add(team1);
         teams.add(team2);
 
+        this.name = name;
         this.question = new Question(slogan,alternatives,pointsCode,"1", quiz);
         this.date_time = date_time;
         this.channel = channel;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public List<Team> getTeams() {
+        return teams;
+    }
+
+    public void setTeams(List<Team> teams) {
+        this.teams = teams;
     }
 
     public Integer getId() {

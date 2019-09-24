@@ -6,6 +6,7 @@ import javax.persistence.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Entity
 public class Game {
@@ -27,6 +28,18 @@ public class Game {
 
     public void addQuiz(Quiz quiz) {
         quizes.add(quiz);
+    }
+    public boolean removeQuiz(Quiz quiz) {
+        return quizes.removeIf(q -> q.getId().equals(quiz.getId()));
+    }
+
+    public Game makeViewable() {
+        setQuizes(quizes.stream().map(q -> {
+            q.setGame(null);
+            return q;
+        }).collect(Collectors.toList()));
+
+        return this;
     }
 
     public Game() {
@@ -97,4 +110,7 @@ public class Game {
     public void setQuizes(List<Quiz> quizes) {
         this.quizes = quizes;
     }
+
+
+
 }

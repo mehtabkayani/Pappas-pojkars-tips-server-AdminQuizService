@@ -7,6 +7,7 @@ import lombok.Setter;
 import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Entity
 public class Quiz {
@@ -23,6 +24,19 @@ public class Quiz {
 
     public void addQuestion(Question question) {
         questions.add(question);
+    }
+    public boolean removeQuestion(Question question) {
+        return questions.removeIf(q -> q.getId().equals(question.getId()));
+    }
+    public Quiz makeViewable() {
+        game.setQuizes(game.getQuizes().stream()
+                .filter(q -> !q.getId().equals(id))
+                .map(q -> {
+                    q.setGame(null);
+                    return q;
+                })
+                .collect(Collectors.toList()));
+        return this;
     }
 
     public Quiz(){}
@@ -78,4 +92,7 @@ public class Quiz {
     public void setGame(Game game) {
         this.game = game;
     }
+
+
+
 }
