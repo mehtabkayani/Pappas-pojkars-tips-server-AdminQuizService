@@ -1,23 +1,16 @@
 package com.pappaspojkars.pappaspojkarstipsserveradminquizservice.model;
 
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
-@AllArgsConstructor
-@NoArgsConstructor
-@Getter
-@Setter
 @Entity
 public class Question {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
     private String slogan;
     @ElementCollection(targetClass=String.class)
@@ -27,12 +20,16 @@ public class Question {
     private String pointsCode;
     private String answerType;
 
-    public Question(String slogan, List<String> alternatives, List<String> results, String pointsCode, String answerType) {
+    public Question() {
+    }
+
+    public Question(String slogan, List<String> alternatives, List<String> results, String pointsCode, String answerType, Quiz quiz) {
         this.slogan = slogan;
         this.alternatives = alternatives;
         this.results = results;
         this.pointsCode = pointsCode;
         this.answerType = answerType;
+        quiz.addQuestion(this);
     }
     public Question(String slogan, List<String> alternatives,  String pointsCode, String answerType, Quiz quiz) {
         this.slogan = slogan;
@@ -41,6 +38,31 @@ public class Question {
         this.answerType = answerType;
         this.results = new ArrayList<>();
         quiz.addQuestion(this);
+    }
+
+    @Override
+    public String toString() {
+        return "Question{" +
+                "id=" + id +
+                ", slogan='" + slogan + '\'' +
+                ", alternatives=" + alternatives +
+                ", results=" + results +
+                ", pointsCode='" + pointsCode + '\'' +
+                ", answerType='" + answerType + '\'' +
+                '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Question question = (Question) o;
+        return Objects.equals(id, question.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
     }
 
     public Integer getId() {
